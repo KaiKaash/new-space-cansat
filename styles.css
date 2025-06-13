@@ -1,0 +1,392 @@
+:root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            --space-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+            --neon-blue: #3b82f6;
+            --neon-pink: #ec4899;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            line-height: 1.7;
+            color: var(--dark);
+            background-color: var(--light);
+            overflow-x: hidden;
+        }
+        
+        /* === Updated Navigation Bar Styles === */
+
+        /* PASTE THIS EXACT CODE INTO styles.css */
+
+        /* --- Main Navigation Bar Container --- */
+        nav {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1.2rem 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            
+            /* This is the magic: it creates the left/right layout */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* --- Styles the "New Space Team" Title --- */
+        nav .title {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+
+        /* --- Styles the list (<ul>) that holds the links --- */
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 3rem; /* Space between the links */
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- Styles the individual links (<a>) --- */
+        .nav-links a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 600;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s ease;
+        }
+
+        /* --- Adds a hover effect ONLY to links that are NOT active --- */
+        .nav-links a:not(.active)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:not(.active):hover::after {
+            width: 100%;
+        }
+
+        /* --- Styles the link for the page you are currently on --- */
+        .nav-links a.active {
+            color: var(--primary);
+            /* Creates the permanent underline for the active page */
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .section {
+            padding: 8rem 5%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #hero {
+            background: var(--space-gradient);
+            color: white;
+            padding-top: 6rem;
+        }
+        
+        #hero::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            top: -20%;
+            right: -10%;
+            z-index: 0;
+        }
+        
+        #hero::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 50%;
+            bottom: -20%;
+            left: -10%;
+            z-index: 0;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+        }
+        
+        h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 2rem;
+            letter-spacing: -0.05em;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #3b82f6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+        
+        .hero-tagline {
+        font-size: 1.8rem; /* Larger text */
+        font-weight: 700; /* Bolder */
+        font-family: 'Orbitron', sans-serif;
+        color: #e0f2fe; /* Light blue-white */
+        text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4); /* Stronger shadow */
+        letter-spacing: 0.05em; /* Wider spacing */
+        line-height: 1.6; /* Improved readability */
+        margin-bottom: 2.5rem;
+        position: relative;
+        display: inline-block;
+        text-transform: uppercase; /* Keep uppercase for impact */
+        }
+        
+        .hero-tagline::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #ec4899);
+            border-radius: 3px;
+            animation: underline-pulse 2s infinite;
+        }
+        
+        @keyframes underline-pulse {
+            0% {
+                opacity: 0.7;
+                width: 0%;
+            }
+            50% {
+                opacity: 1;
+                width: 100%;
+            }
+            100% {
+                opacity: 0.7;
+                width: 0%;
+            }
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            font-size: 1.1rem;
+            color: #64748b;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: transparent;
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+            border: 2px solid var(--neon-blue);
+            font-family: 'Orbitron', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.8);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient( to bottom right, rgba(59, 130, 246, 0), rgba(59, 130, 246, 0), rgba(59, 130, 246, 0.3), rgba(59, 130, 246, 0));
+            transform: rotate(45deg);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% {
+                left: -50%;
+                top: -50%;
+            }
+            100% {
+                left: 150%;
+                top: 150%;
+            }
+        }
+        
+        .achievements-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .achievement-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .achievement-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(37, 99, 235, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: 0.5s;
+        }
+        
+        .achievement-card:hover::before {
+            animation: shine 1.5s;
+        }
+        
+        .achievement-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        footer {
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 3rem 5%;
+            position: relative;
+        }
+        
+        .section-header {
+            margin-bottom: 4rem;
+        }
+        
+        .section-header h2 {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .section-header h2::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+        
+        .cansat-info {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+            max-width: 800px;
+            margin: 0 auto 4rem;
+            text-align: left;
+        }
+        
+        .mission-boxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 2rem auto;
+        }
+        
+        .mission-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+            text-align: left;
+            transition: transform 0.3s ease;
+        }
+        
+        .mission-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mission-box h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .hero-tagline {
+                font-size: 1.2rem;
+            }
+            h2 {
+                font-size: 2rem;
+            }
+            nav ul {
+                gap: 1.5rem;
+                justify-content: center;
+            }
+            .achievements-list,
+            .mission-boxes {
+                grid-template-columns: 1fr;
+            }
+            .cansat-info {
+                padding: 2rem;
+            }
+        }
