@@ -7,7 +7,6 @@
     <title>CanSat Live Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
     <style>
          :root {
             --primary: #2563eb;
@@ -17,8 +16,6 @@
             --temperature: #ef4444;
             --pressure: #10b981;
             --humidity: #3b82f6;
-            --trajectory: #f59e0b; /* Color for GPS trajectory */
-            --landing: #ec4899; /* Color for predicted landing position */
         }
         
         * {
@@ -223,8 +220,6 @@
             <div class="graph-container"><div class="chart-title">Pressure</div><canvas id="chart5"></canvas></div>
             <!-- Title changed for the humidity chart -->
             <div class="graph-container"><div class="chart-title">Humidity Over Time</div><canvas id="chart6"></canvas></div>
-            <div class="graph-container"><div class="chart-title">Projectile</div><canvas id="chart7"></canvas></div>
-            <div class="graph-container"><div class="chart-title">GPS Trajectory & Landing Position</div><canvas id="chart8"></canvas></div>
         </div>
         <div class="table-container">
             <div class="chart-title">Live Data Log</div>
@@ -258,85 +253,19 @@
 
     // --- CHART.JS GLOBAL CONFIGURATION ---
     const chartConfig = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: { display: false },
-        tooltip: {
-            callbacks: {
-                label: function(context) {
-                    let label = context.dataset.label || '';
-                    if (label) label += ': ';
-                    if (context.parsed.y !== null) {
-                        label += context.parsed.y.toFixed(2);
-                        if (context.dataset.label.includes('Temperature')) label += '°C';
-                        else if (context.dataset.label.includes('Pressure')) label += ' hPa';
-                        else if (context.dataset.label.includes('Humidity')) label += '%';
-                        else if (context.dataset.label.includes('Altitude')) label += ' m';
-                        else if (context.dataset.label.includes('Latitude')) label += '°';
-                        else if (context.dataset.label.includes('Longitude')) label += '°';
-                    }
-                    return label;
-                }
-            }
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: '#e2e8f0' } }
+        },
+        animation: {
+            duration: 500 // Smooth transition for updates
         }
-    },
-    scales: {
-        x: { grid: { display: false } },
-        y: { grid: { color: '#e2e8f0' } }
-    },
-    animation: {
-        duration: 500
-    }
-};
-
-    // Constants for landing position calculation
-const R_EARTH = 6371000; // Earth's radius in meters
-const DESCENT_RATE = -2; // Descent rate in m/s (negative for falling)
-const PI = Math.PI;
-
-// Track last position for velocity calculation
-let lastPosition = null;
-let lastTimestamp = null;
-
-// Calculate landing position based on GPS trajectory
-function calculateLandingPosition(data) {
-    const latitude = parseFloat(data.Latitude);
-    const longitude = parseFloat(data.Longitude);
-    const altitude = parseFloat(data.Altitude_Baro);
-    const timestamp = data.Time ? new Date(data.Time).getTime() / 1000 : null;
-
-    if (isNaN(latitude) || isNaN(longitude) || isNaN(altitude) || !timestamp) {
-        console.warn('Missing or invalid GPS data');
-        return null;
-    }
-
-    let latFinal = latitude;
-    let lonFinal = longitude;
-
-    if (lastPosition && lastTimestamp) {
-        const dt = timestamp - lastTimestamp; // Time difference in seconds
-        if (dt > 0) {
-            const dLat = latitude - lastPosition.latitude;
-            const dLon = longitude - lastPosition.longitude;
-            const vLat = dLat / dt; // deg/s
-            const vLon = dLon / dt; // deg/s
-
-            const v_x = vLon * (R_EARTH * Math.cos(latitude * PI / 180)) * PI / 180; // m/s
-            const v_y = vLat * R_EARTH * PI / 180; // m/s
-
-            const t = altitude / Math.abs(DESCENT_RATE); // Time to ground in seconds
-
-            latFinal = latitude + (v_y * t) / R_EARTH * 180 / PI;
-            lonFinal = longitude + (v_x * t) / (R_EARTH * Math.cos(latitude * PI / 180)) * 180 / PI;
-        }
-    }
-
-    lastPosition = { latitude, longitude };
-    lastTimestamp = timestamp;
-
-    return { latFinal, lonFinal };
-}
+    };
 
     // --- INITIALIZE CHARTS ---
     const charts = {
@@ -386,54 +315,7 @@ function calculateLandingPosition(data) {
                 }] 
             },
             options: chartConfig // Use the standard config
-        }),
-       landing: new Chart(document.getElementById('chart8'), {
-            type: 'scatter',
-            data: {
-                datasets: [{
-                    label: 'GPS Trajectory',
-                    data: [],
-                    backgroundColor: 'var(--trajectory)',
-                    borderColor: 'var(--dark)',
-                    borderWidth: 1,
-                    pointRadius: 4
-                }, {
-                    label: 'Predicted Landing Position',
-                    data: [],
-                    backgroundColor: 'var(--landing)',
-                    borderColor: 'var(--dark)',
-                    borderWidth: 2,
-                    pointRadius: 8
-                }]
-            },
-            options: {
-                ...chartConfig,
-                plugins: {
-                    ...chartConfig.plugins,
-                    legend: { display: true, position: 'top' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const point = context.raw;
-                                return `${context.dataset.label}: (${point.x.toFixed(6)}°, ${point.y.toFixed(6)}°)`;
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        ...chartConfig.scales.x,
-                        title: { display: true, text: 'Longitude (°)' },
-                        ticks: { precision: 6 }
-                    },
-                    y: {
-                        ...chartConfig.scales.y,
-                        title: { display: true, text: 'Latitude (°)' },
-                        ticks: { precision: 6 }
-                    }
-                }
-            }
-        }),
+        })
     };
 
     // --- DATA FETCHING AND UPDATING ---
@@ -504,19 +386,6 @@ function calculateLandingPosition(data) {
         ];
         charts.accel.update();
         
-                // Update landing position chart
-        if (data.Latitude && data.Longitude && data.Altitude_Baro) {
-            charts.landing.data.datasets[0].data.push({ x: parseFloat(data.Longitude), y: parseFloat(data.Latitude) });
-            if (charts.landing.data.datasets[0].data.length > MAX_DATA_POINTS) {
-                charts.landing.data.datasets[0].data.shift();
-            }
-            const landingPos = calculateLandingPosition(data);
-            if (landingPos) {
-                charts.landing.data.datasets[1].data = [{ x: landingPos.lonFinal, y: landingPos.latFinal }];
-            }
-            charts.landing.update();
-        }
-
         updateTable(data);
     }
 
