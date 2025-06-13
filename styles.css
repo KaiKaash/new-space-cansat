@@ -27,72 +27,72 @@
 
         /* PASTE THIS EXACT CODE INTO styles.css */
 
-        /* --- Main Navigation Bar Container --- */
-        nav {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1.2rem 5%;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
-            
-            /* This is the magic: it creates the left/right layout */
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    /* --- Main Navigation Bar Container --- */
+    nav {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 1.2rem 5%;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        
+        /* This is the magic: it creates the left/right layout */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-        /* --- Styles the "New Space Team" Title --- */
-        nav .title {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--dark);
-        }
+    /* --- Styles the "New Space Team" Title --- */
+    nav .title {
+        font-family: 'Orbitron', sans-serif;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--dark);
+    }
 
-        /* --- Styles the list (<ul>) that holds the links --- */
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 3rem; /* Space between the links */
-            margin: 0;
-            padding: 0;
-        }
+    /* --- Styles the list (<ul>) that holds the links --- */
+    .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 3rem; /* Space between the links */
+        margin: 0;
+        padding: 0;
+    }
 
-        /* --- Styles the individual links (<a>) --- */
-        .nav-links a {
-            color: var(--dark);
-            text-decoration: none;
-            font-weight: 600;
-            position: relative;
-            padding: 0.5rem 0;
-            transition: color 0.3s ease;
-        }
+    /* --- Styles the individual links (<a>) --- */
+    .nav-links a {
+        color: var(--dark);
+        text-decoration: none;
+        font-weight: 600;
+        position: relative;
+        padding: 0.5rem 0;
+        transition: color 0.3s ease;
+    }
 
-        /* --- Adds a hover effect ONLY to links that are NOT active --- */
-        .nav-links a:not(.active)::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--primary);
-            transition: width 0.3s ease;
-        }
+    /* --- Adds a hover effect ONLY to links that are NOT active --- */
+    .nav-links a:not(.active)::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--primary);
+        transition: width 0.3s ease;
+    }
 
-        .nav-links a:not(.active):hover::after {
-            width: 100%;
-        }
+    .nav-links a:not(.active):hover::after {
+        width: 100%;
+    }
 
-        /* --- Styles the link for the page you are currently on --- */
-        .nav-links a.active {
-            color: var(--primary);
-            /* Creates the permanent underline for the active page */
-            border-bottom: 2px solid var(--primary);
-        }
+    /* --- Styles the link for the page you are currently on --- */
+    .nav-links a.active {
+        color: var(--primary);
+        /* Creates the permanent underline for the active page */
+        border-bottom: 2px solid var(--primary);
+    }
         
         .section {
             padding: 8rem 5%;
