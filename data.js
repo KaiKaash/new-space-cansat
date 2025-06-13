@@ -145,7 +145,7 @@ const charts = {
             datasets: [{
                 label: 'Horizontal Distance (m)',
                 data: [],
-                borderColor: 'var(--primary)',
+                borderColor: 'var(--)',
                 borderWidth: 3,
                 tension: 0.1
             }, {
