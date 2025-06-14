@@ -227,6 +227,8 @@
                 <thead>
                     <tr>
                         <th>Time</th>
+                        <th>Altitude (m)</th>
+                        <th>Speed (km/h)</th>
                     </tr>
                 </thead>
                 <tbody id="data-log-body">
@@ -393,9 +395,9 @@
 
         const time = data.Time || 'N/A';
         const altitude = parseFloat(data.Altitude_Baro || 0).toFixed(2);
+        const speed = parseFloat(data.Speed || 0).toFixed(2);
 
-
-        row.innerHTML = `<td>${time}</td><td>${altitude}</td>`;
+        row.innerHTML = `<td>${time}</td><td>${altitude}</td><td>${speed}</td>`;
 
         tbody.prepend(row);
 
