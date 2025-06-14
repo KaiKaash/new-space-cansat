@@ -190,6 +190,7 @@ const ws = new WebSocket('https://flask-server-vfih.onrender.com/api/latest-data
 ws.onopen = () => console.log('WebSocket connected');
 ws.onmessage = event => {
     const data = JSON.parse(event.data);
+    console.log(data)
     const timestamp = data.timestamp / 1000; // Convert ms to seconds
 
     // Update Height (Altitude) Chart
