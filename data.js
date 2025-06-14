@@ -15,6 +15,8 @@ const chartConfig = {
                         else if (context.dataset.label.includes('Humidity')) label += '%';
                         else if (context.dataset.label.includes('Height') || context.dataset.label.includes('Altitude')) label += ' m';
                         else if (context.dataset.label.includes('Velocity') || context.dataset.label.includes('Distance')) label += ' m';
+                        else if (context.dataset.label.includes('Predicted_Lat')) label += '';
+                        else if (context.dataset.label.includes('Predicted_Lon')) label += ' ';
                     }
                     return label;
                 }
@@ -237,22 +239,9 @@ ws.onmessage = event => {
     }
 
     // Update Projectile Motion Chart
-    if (data.gps_lock && data.latitude && data.longitude) {
-        if (lastLat !== null && lastLon !== null) {
-            const distance = calculateDistance(lastLat, lastLon, data.latitude, data.longitude);
-            totalDistance += distance;
-        }
-        lastLat = data.latitude;
-        lastLon = data.longitude;
-    }
-    charts.motion.data.labels.push(timestamp.toFixed(1) + 's');
-    charts.motion.data.datasets[0].data.push(totalDistance);
-    charts.motion.data.datasets[1].data.push(data.altitude_baro);
-    if (charts.motion.data.labels.length > 20) {
-        charts.motion.data.labels.shift();
-        charts.motion.data.datasets[0].data.shift();
-        charts.motion.data.datasets[1].data.shift();
-    }
+    Predicted_Latitude = data.Predicted_Latitude;
+    Predicted_Longitude = data.Predicted_Longitude;
+
     charts.motion.update();
 
     // Update Table
