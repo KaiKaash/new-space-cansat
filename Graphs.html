@@ -393,9 +393,9 @@
 
         const time = data.Time || 'N/A';
         const altitude = parseFloat(data.Altitude_Baro || 0).toFixed(2);
-        const speed = parseFloat(data.Speed || 0).toFixed(2);
 
-        row.innerHTML = `<td>${time}</td><td>${altitude}</td><td>${speed}</td>`;
+
+        row.innerHTML = `<td>${time}</td><td>${altitude}</td>`;
 
         tbody.prepend(row);
 
