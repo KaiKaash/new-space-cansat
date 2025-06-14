@@ -16,6 +16,8 @@
             --temperature: #ef4444;
             --pressure: #10b981;
             --humidity: #3b82f6;
+            --Predected_Lat: #f59e0b;
+            --Predected_Lon: #8b5cf6;
         }
         
         * {
@@ -220,6 +222,7 @@
             <div class="graph-container"><div class="chart-title">Pressure</div><canvas id="chart5"></canvas></div>
             <!-- Title changed for the humidity chart -->
             <div class="graph-container"><div class="chart-title">Humidity Over Time</div><canvas id="chart6"></canvas></div>
+            <div class="graph-container"><div class="chart-title">Projectile Data</div><canvas id="chart7"></canvas></div>
         </div>
         <div class="table-container">
             <div class="chart-title">Live Data Log</div>
@@ -241,174 +244,224 @@
         <p>© 2024 CanSat Project. All rights reserved.</p>
     </footer>
     
-    <script>
-    // =================================================================
-    // JAVASCRIPT CODE
-    // =================================================================
+<script>
+// =================================================================
+// JAVASCRIPT CODE
+// =================================================================
 
-    // --- CONFIGURATION ---
-    const API_URL = "https://flask-server-vfih.onrender.com/api/latest-data";
-    const MAX_DATA_POINTS = 30; // Max points to show on line charts
+// --- CONFIGURATION ---
+const API_URL = "https://flask-server-vfih.onrender.com/api/latest-data";
+const MAX_DATA_POINTS = 30; // Max points to show on line charts
 
-    // --- CHART.JS GLOBAL CONFIGURATION ---
-    const chartConfig = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
+// --- CHART.JS GLOBAL CONFIGURATION ---
+const chartConfig = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: { display: false },
+    },
+    scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#e2e8f0' } }
+    },
+    animation: {
+        duration: 500 // Smooth transition for updates
+    }
+};
+
+// --- INITIALIZE CHARTS ---
+const charts = {
+    height: new Chart(document.getElementById('chart1'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Altitude (m)', data: [], borderColor: 'var(--primary)', borderWidth: 2, tension: 0.4, pointRadius: 0 }] },
+        options: chartConfig
+    }),
+    gyro: new Chart(document.getElementById('chart2'), {
+        type: 'radar',
+        data: {
+            labels: ['GyroX', 'GyroY', 'GyroZ'],
+            datasets: [{ data: [0, 0, 0], backgroundColor: 'rgba(37, 99, 235, 0.2)', borderColor: 'var(--primary)', borderWidth: 2 }]
         },
-        scales: {
-            x: { grid: { display: false } },
-            y: { grid: { color: '#e2e8f0' } }
+        options: { ...chartConfig, scales: { r: { suggestedMin: -2, suggestedMax: 2 } } }
+    }),
+    accel: new Chart(document.getElementById('chart3'), {
+        type: 'bar',
+        data: {
+            labels: ['AccX', 'AccY', 'AccZ'],
+            datasets: [{ data: [0, 0, 0], backgroundColor: ['var(--primary)', '#1e40af', '#93c5fd'], borderRadius: 4 }]
         },
-        animation: {
-            duration: 500 // Smooth transition for updates
+        options: { ...chartConfig, scales: { y: { suggestedMin: -15, suggestedMax: 15 } } }
+    }),
+    temp: new Chart(document.getElementById('chart4'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Temp (°C)', data: [], borderColor: 'var(--temperature)', borderWidth: 2, tension: 0.4, pointRadius: 0 }] },
+        options: chartConfig
+    }),
+    pressure: new Chart(document.getElementById('chart5'), {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Pressure (hPa)', data: [], borderColor: 'var(--pressure)', borderWidth: 2, tension: 0.4, pointRadius: 0 }] },
+        options: chartConfig
+    }),
+    // * MODIFICATION HERE: Changed chart6 to a line chart *
+    humidity: new Chart(document.getElementById('chart6'), {
+        type: 'line', // Changed from 'doughnut'
+        data: { 
+            labels: [], 
+            datasets: [{ 
+                label: 'Humidity (%)', 
+                data: [], 
+                borderColor: 'var(--humidity)', // Used the humidity color variable
+                borderWidth: 2, 
+                tension: 0.4, 
+                pointRadius: 0 
+            }] 
+        },
+        options: chartConfig // Use the standard config
+    }),
+    // Projectile chart7
+    projectile: new Chart(document.getElementById('chart7'), {
+        type: 'scatter',
+        data: {
+            datasets: [{
+                label: 'GPS Trajectory',
+                data: [],
+                backgroundColor: 'var(--projectile)',
+                borderColor: 'var(--dark)',
+                borderWidth: 2,
+                pointRadius: 6,
+                pointStyle: 'circle'
+            }, {
+                label: 'Predicted Landing',
+                data: [],
+                backgroundColor: 'var(--landing)',
+                borderColor: 'var(--dark)',
+                borderWidth: 2,
+                pointRadius: 8,
+                pointStyle: 'circle'
+            }]
+        },
+        options: {
+            ...chartConfig,
+            plugins: {
+                ...chartConfig.plugins,
+                legend: { display: true, position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const point = context.raw;
+                            return `${context.dataset.label}: (${point.x.toFixed(6)}°, ${point.y.toFixed(6)}°)`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ...chartConfig.scales.x,
+                    title: { display: true, text: 'Longitude (°)' },
+                    ticks: { precision: 6 }
+                },
+                y: {
+                    ...chartConfig.scales.y,
+                    title: { display: true, text: 'Latitude (°)' },
+                    ticks: { precision: 6 }
+                }
+            }
         }
+    })
+};
+
+// --- DATA FETCHING AND UPDATING ---
+const statusText = document.getElementById('status-text');
+const statusLight = document.getElementById('status-light');
+let lastTime = null; // To avoid processing duplicate data points
+
+async function fetchData() {
+    try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        if (data.error || Object.keys(data).length === 0) {
+            throw new Error(data.error || "No data received");
+        }
+
+        if (data.Time === lastTime) {
+            return;
+        }
+        lastTime = data.Time;
+
+        statusText.textContent = "Live";
+        statusLight.className = 'status-light live';
+
+        updateDashboard(data);
+
+    } catch (error) {
+        console.error("Failed to fetch data:", error);
+        statusText.textContent = "Error";
+        statusLight.className = 'status-light error';
+    }
+}
+
+function updateDashboard(data) {
+    const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+    
+    const updateLineChart = (chart, label, value) => {
+        if (chart.data.labels.length >= MAX_DATA_POINTS) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+        chart.data.labels.push(currentTime);
+        chart.data.datasets[0].data.push(parseFloat(value) || 0);
+        chart.update();
     };
 
-    // --- INITIALIZE CHARTS ---
-    const charts = {
-        height: new Chart(document.getElementById('chart1'), {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Altitude (m)', data: [], borderColor: 'var(--primary)', borderWidth: 2, tension: 0.4, pointRadius: 0 }] },
-            options: chartConfig
-        }),
-        gyro: new Chart(document.getElementById('chart2'), {
-            type: 'radar',
-            data: {
-                labels: ['GyroX', 'GyroY', 'GyroZ'],
-                datasets: [{ data: [0, 0, 0], backgroundColor: 'rgba(37, 99, 235, 0.2)', borderColor: 'var(--primary)', borderWidth: 2 }]
-            },
-            options: { ...chartConfig, scales: { r: { suggestedMin: -2, suggestedMax: 2 } } }
-        }),
-        accel: new Chart(document.getElementById('chart3'), {
-            type: 'bar',
-            data: {
-                labels: ['AccX', 'AccY', 'AccZ'],
-                datasets: [{ data: [0, 0, 0], backgroundColor: ['var(--primary)', '#1e40af', '#93c5fd'], borderRadius: 4 }]
-            },
-            options: { ...chartConfig, scales: { y: { suggestedMin: -15, suggestedMax: 15 } } }
-        }),
-        temp: new Chart(document.getElementById('chart4'), {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Temp (°C)', data: [], borderColor: 'var(--temperature)', borderWidth: 2, tension: 0.4, pointRadius: 0 }] },
-            options: chartConfig
-        }),
-        pressure: new Chart(document.getElementById('chart5'), {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Pressure (hPa)', data: [], borderColor: 'var(--pressure)', borderWidth: 2, tension: 0.4, pointRadius: 0 }] },
-            options: chartConfig
-        }),
-        // * MODIFICATION HERE: Changed chart6 to a line chart *
-        humidity: new Chart(document.getElementById('chart6'), {
-            type: 'line', // Changed from 'doughnut'
-            data: { 
-                labels: [], 
-                datasets: [{ 
-                    label: 'Humidity (%)', 
-                    data: [], 
-                    borderColor: 'var(--humidity)', // Used the humidity color variable
-                    borderWidth: 2, 
-                    tension: 0.4, 
-                    pointRadius: 0 
-                }] 
-            },
-            options: chartConfig // Use the standard config
-        })
-    };
+    // Update each chart with new data
+    updateLineChart(charts.height, 'Altitude (m)', data.Altitude_Baro);
+    updateLineChart(charts.temp, 'Temp (°C)', data.Temperature_DHT);
+    updateLineChart(charts.pressure, 'Pressure (hPa)', data.Pressure);
+    // * MODIFICATION HERE: Humidity now uses the same update function *
+    updateLineChart(charts.humidity, 'Humidity (%)', data.Humidity_DHT);
 
-    // --- DATA FETCHING AND UPDATING ---
-    const statusText = document.getElementById('status-text');
-    const statusLight = document.getElementById('status-light');
-    let lastTime = null; // To avoid processing duplicate data points
+    charts.gyro.data.datasets[0].data = [
+        parseFloat(data.GyroX) || 0,
+        parseFloat(data.GyroY) || 0,
+        parseFloat(data.GyroZ) || 0
+    ];
+    charts.gyro.update();
 
-    async function fetchData() {
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            const data = await response.json();
+    charts.accel.data.datasets[0].data = [
+        parseFloat(data.AccX) || 0,
+        parseFloat(data.AccY) || 0,
+        parseFloat(data.AccZ) || 0
+    ];
+    charts.accel.update();
+    
+    updateTable(data);
+}
 
-            if (data.error || Object.keys(data).length === 0) {
-                throw new Error(data.error || "No data received");
-            }
+function updateTable(data) {
+    const tbody = document.getElementById('data-log-body');
+    const row = document.createElement('tr');
 
-            if (data.Time === lastTime) {
-                return;
-            }
-            lastTime = data.Time;
+    const time = data.Time || 'N/A';
+    const altitude = parseFloat(data.Altitude_Baro || 0).toFixed(2);
+    const speed = parseFloat(data.Speed || 0).toFixed(2);
 
-            statusText.textContent = "Live";
-            statusLight.className = 'status-light live';
+    row.innerHTML = `<td>${time}</td><td>${altitude}</td><td>${speed}</td>`;
 
-            updateDashboard(data);
+    tbody.prepend(row);
 
-        } catch (error) {
-            console.error("Failed to fetch data:", error);
-            statusText.textContent = "Error";
-            statusLight.className = 'status-light error';
-        }
+    if (tbody.children.length > 10) {
+        tbody.removeChild(tbody.lastChild);
     }
+}
 
-    function updateDashboard(data) {
-        const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-        
-        const updateLineChart = (chart, label, value) => {
-            if (chart.data.labels.length >= MAX_DATA_POINTS) {
-                chart.data.labels.shift();
-                chart.data.datasets[0].data.shift();
-            }
-            chart.data.labels.push(currentTime);
-            chart.data.datasets[0].data.push(parseFloat(value) || 0);
-            chart.update();
-        };
+// --- START THE PROCESS ---
+document.addEventListener('DOMContentLoaded', fetchData);
+setInterval(fetchData, 2000);
 
-        // Update each chart with new data
-        updateLineChart(charts.height, 'Altitude (m)', data.Altitude_Baro);
-        updateLineChart(charts.temp, 'Temp (°C)', data.Temperature_DHT);
-        updateLineChart(charts.pressure, 'Pressure (hPa)', data.Pressure);
-        // * MODIFICATION HERE: Humidity now uses the same update function *
-        updateLineChart(charts.humidity, 'Humidity (%)', data.Humidity_DHT);
-
-        charts.gyro.data.datasets[0].data = [
-            parseFloat(data.GyroX) || 0,
-            parseFloat(data.GyroY) || 0,
-            parseFloat(data.GyroZ) || 0
-        ];
-        charts.gyro.update();
-
-        charts.accel.data.datasets[0].data = [
-            parseFloat(data.AccX) || 0,
-            parseFloat(data.AccY) || 0,
-            parseFloat(data.AccZ) || 0
-        ];
-        charts.accel.update();
-        
-        updateTable(data);
-    }
-
-    function updateTable(data) {
-        const tbody = document.getElementById('data-log-body');
-        const row = document.createElement('tr');
-
-        const time = data.Time || 'N/A';
-        const altitude = parseFloat(data.Altitude_Baro || 0).toFixed(2);
-        const speed = parseFloat(data.Speed || 0).toFixed(2);
-
-        row.innerHTML = `<td>${time}</td><td>${altitude}</td><td>${speed}</td>`;
-
-        tbody.prepend(row);
-
-        if (tbody.children.length > 10) {
-            tbody.removeChild(tbody.lastChild);
-        }
-    }
-
-    // --- START THE PROCESS ---
-    document.addEventListener('DOMContentLoaded', fetchData);
-    setInterval(fetchData, 2000);
-
-    </script>
+</script>
 </body>
 </html>
